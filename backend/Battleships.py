@@ -145,6 +145,47 @@ class Game:
                     board.place_ship(start_row, start_col, direction, length)
                     placed = True
 
+    def manual_place_ships(self, player):
+        print(f"\n{player.name}, place your ships")
+        print(player.board)
+        for length in self.ship_length_list:
+            placed = False
+            while not placed:
+                direction_input = input(f"\nShip length {length}. Enter direction (H for Horizontal, V for Vertical): ").strip().upper()
+                if direction_input == 'H':
+                    direction = 'Horizontal'
+                elif direction_input == 'V':
+                    direction = 'Vertical'
+                else:
+                    print("Invalid direction. Enter H or V.")
+                    continue
+
+                try:
+                    coords = input("Enter starting row and column (e.g 1 1): ")
+                    row, col = map(int, coords.split())
+                except ValueError:
+                    print("Invalid input. Please enter two integers separated by a space.")
+                    continue
+
+                if not (1 <= row <= player.board.size and 1 <= col <= player.board.size):
+                    print("Invalid input. Please enter numbers between 1 and 10.")
+                    continue
+
+                if player.board.check_ship_placement(row - 1, col - 1, direction, length):
+                    player.board.place_ship(row - 1, col - 1, direction, length)
+                    placed = True
+                    print(player.board)
+                else:
+                    print("Cannot place ship there. It overlaps, touches another ship, or is out of bounds.")
+
+    def setup_boards(self):
+        for player in self.players:
+            choice = input(f"\n{player.name}, choose ship placement mode (M for Manual, R for Random, default R): ").strip().upper()
+            if choice == 'M':
+                self.manual_place_ships(player)
+            else:
+                self.generate_board(player.board)
+
     def play_turn(self):
         player = self.players[self.current_player]
         opponent = self.players[1 - self.current_player]
@@ -183,8 +224,7 @@ class Game:
             self.current_player = 1 if self.current_player == 0 else 0
 
     def play(self):
-        self.generate_board(self.players[0].board)
-        self.generate_board(self.players[1].board)
+        self.setup_boards()
 
         while self.players[0].ships_remaining and self.players[1].ships_remaining:
             print(f"Ships remaining P1: {len(self.players[0].ships_remaining)}, P2: {len(self.players[1].ships_remaining)}")
